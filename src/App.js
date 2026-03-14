@@ -30,7 +30,7 @@ function App() {
       bgColor: "#271E37", 
       textColor: "#fff",
       links: [
-        { label: "Pablo Avila", ariaLabel: "Pablo", icon: 'avien77PFP.png', href: 'https://github.com/Avien77'},
+        { label: "Pablo Avila", ariaLabel: "Pablo", icon: 'avien77pfp.png', href: 'https://github.com/Avien77'},
         { label: "Aiden Bariac", ariaLabel: "Aiden", icon: 'aidenPFP.png', href: 'https://github.com/adbaraiac'},
         { label: "Natalie Muscas", ariaLabel: "Natalie", href: 'https://github.com/Avien77' }
       ]
