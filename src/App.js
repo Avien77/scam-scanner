@@ -32,7 +32,7 @@ function App() {
       links: [
         { label: "Pablo Avila", ariaLabel: "Pablo", icon: 'avien77pfp.png', href: 'https://github.com/Avien77'},
         { label: "Aiden Bariac", ariaLabel: "Aiden", icon: 'aidenPFP.png', href: 'https://github.com/adbaraiac'},
-        { label: "Natalie Muscas", ariaLabel: "Natalie", href: 'https://github.com/Avien77' }
+        { label: "Natalie Muscas", ariaLabel: "Natalie", icon: 'nataliepfp.png', href: 'https://github.com/nataliemuscas' }
       ]
     }
   ];
