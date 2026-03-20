@@ -1,37 +1,51 @@
+const express = require('express');
+const multer = require('multer');
+const { extractTextFromImageBuffer } = require('../services/textractService');
 
+const router = express.Router();
 
-app.post('/presign', (req, res) => {
-
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+    },
 });
 
-app.post('/documents', (req, res) => {
-    
+router.post('/extract-text', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                error: 'No image file received. Send as multipart/form-data with field name "image".',
+            });
+        }
+
+        const mimeType = req.file.mimetype || '';
+        if (!mimeType.startsWith('image/')) {
+            return res.status(400).json({
+                error: 'Unsupported file type. Only image uploads are allowed.',
+            });
+        }
+
+        const result = await extractTextFromImageBuffer(req.file.buffer);
+
+        return res.status(200).json({
+            success: true,
+            text: result.text,
+            lines: result.lines,
+            metadata: {
+                blockCount: result.blockCount,
+                fileName: req.file.originalname,
+                mimeType: req.file.mimetype,
+                sizeBytes: req.file.size,
+            },
+        });
+    } catch (error) {
+        console.error('Textract extraction failed:', error);
+        return res.status(500).json({
+            error: 'Failed to extract text from image.',
+            details: error.message,
+        });
+    }
 });
 
-app.post('/documents/:id/extract', (req, res) => {
-
-});
-
-app.get('/documents/:id/result', (req, res) => {
-    
-});
-
-
-
-//Routes needed
-    //Post
-        //Client sends a image we need to pass through textract
-    //Get
-        //Client wants to get result->Should show automatically
-        //Client wants to show past result -> Get based on title
-POST /uploads/presign
-POST /documents
-POST /documents/:id/extract
-GET /documents/:id/result
-
-Each route:
-
-1 receives request
-2 validates input
-3 calls AWS service
-4 returns result
+module.exports = router;
