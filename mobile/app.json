@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Scam Scanner",
+    "slug": "scam-scanner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "scamscanner",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow camera to capture screenshots for scam scanning.",
+        "NSPhotoLibraryUsageDescription": "Allow access to photos to upload screenshots for text extraction."
+      }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to photos to upload screenshots for text extraction.",
+          "cameraPermission": "Allow camera to capture screenshots for scam scanning."
+        }
+      ],
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
+  }
+}

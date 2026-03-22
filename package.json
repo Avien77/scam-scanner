@@ -23,6 +23,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "expo": "npm run --prefix mobile start",
     "backend": "node backend/server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",

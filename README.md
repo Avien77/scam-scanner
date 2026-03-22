@@ -2,6 +2,17 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+### Mobile app (Expo)
+
+The **Expo** client lives in `mobile/`. Run the backend from the repo root (`npm run backend`), then:
+
+```bash
+cd mobile
+npx expo start
+```
+
+Or from the repo root: `npm run expo`. See `mobile/README.md` for API URL tips (emulator vs physical device).
+
 ## Available Scripts
 
 In the project directory, you can run:

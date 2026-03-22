@@ -23,7 +23,23 @@ async function extractTextFromImageBuffer(imageBuffer) {
         },
     });
 
-    const response = await getTextractClient().send(command);
+    let response;
+    try {
+        response = await getTextractClient().send(command);
+    } catch (err) {
+        const msg = err.message || '';
+        const code = err.name || err.Code || '';
+        const unsupported =
+            code === 'UnsupportedDocumentException' ||
+            /UnsupportedDocumentException/i.test(String(err)) ||
+            /unsupported document format/i.test(msg);
+        if (unsupported) {
+            const hint =
+                'AWS Textract needs JPEG, PNG, or TIFF bytes. HEIC/iPhone photos and some WebP files fail unless converted.';
+            throw new Error(hint);
+        }
+        throw err;
+    }
     const lines = (response.Blocks || [])
         .filter((block) => block.BlockType === 'LINE' && typeof block.Text === 'string')
         .map((block) => block.Text.trim())
