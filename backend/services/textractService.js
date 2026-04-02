@@ -1,4 +1,5 @@
 const { TextractClient, DetectDocumentTextCommand } = require('@aws-sdk/client-textract');
+const { linesFromTextractBlocks } = require('../utils/textractBlocks');
 
 let textractClient = null;
 
@@ -40,10 +41,7 @@ async function extractTextFromImageBuffer(imageBuffer) {
         }
         throw err;
     }
-    const lines = (response.Blocks || [])
-        .filter((block) => block.BlockType === 'LINE' && typeof block.Text === 'string')
-        .map((block) => block.Text.trim())
-        .filter(Boolean);
+    const lines = linesFromTextractBlocks(response.Blocks);
 
     return {
         lines,

@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { extractTextFromImageBuffer } = require('../services/textractService');
+const { validateImageFile } = require('../utils/uploadValidation');
 
 const router = express.Router();
 
@@ -13,17 +14,9 @@ const upload = multer({
 
 router.post('/extract-text', upload.single('image'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({
-                error: 'No image file received. Send as multipart/form-data with field name "image".',
-            });
-        }
-
-        const mimeType = req.file.mimetype || '';
-        if (!mimeType.startsWith('image/')) {
-            return res.status(400).json({
-                error: 'Unsupported file type. Only image uploads are allowed.',
-            });
+        const validation = validateImageFile(req.file);
+        if (!validation.ok) {
+            return res.status(validation.status).json(validation.body);
         }
 
         const result = await extractTextFromImageBuffer(req.file.buffer);

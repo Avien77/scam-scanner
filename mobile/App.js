@@ -59,12 +59,14 @@ function resolveApiBase() {
 
 const API_BASE = resolveApiBase();
 const EXTRACT_URL = `${API_BASE}/api/upload/extract-text`;
+const CLASSIFY_URL = `${API_BASE}/api/scan/classify`;
 
 export default function App() {
   const [imageUri, setImageUri] = useState(null);
   const [extractedText, setExtractedText] = useState('');
   const [lines, setLines] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [scamVerdict, setScamVerdict] = useState(null);
 
   const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -81,6 +83,7 @@ export default function App() {
       setImageUri(result.assets[0].uri);
       setExtractedText('');
       setLines([]);
+      setScamVerdict(null);
     }
   };
 
@@ -98,6 +101,7 @@ export default function App() {
       setImageUri(result.assets[0].uri);
       setExtractedText('');
       setLines([]);
+      setScamVerdict(null);
     }
   };
 
@@ -110,6 +114,7 @@ export default function App() {
     setLoading(true);
     setExtractedText('');
     setLines([]);
+    setScamVerdict(null);
 
     try {
       // Textract sync API supports JPEG/PNG/TIFF — not HEIC/WebP. iPhone photos are often HEIC.
@@ -140,8 +145,33 @@ export default function App() {
         throw new Error(data.details || data.error || `HTTP ${response.status}`);
       }
 
-      setExtractedText(data.text || '');
+      const text = data.text || '';
+      setExtractedText(text);
       setLines(Array.isArray(data.lines) ? data.lines : []);
+
+      if (text.trim()) {
+        try {
+          const clsRes = await fetch(CLASSIFY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+          const clsData = await clsRes.json().catch(() => ({}));
+          if (clsRes.ok) {
+            setScamVerdict({
+              label: clsData.label,
+              score: clsData.score,
+              threshold: clsData.threshold,
+            });
+          } else {
+            setScamVerdict({
+              error: clsData.error || `Classify HTTP ${clsRes.status}`,
+            });
+          }
+        } catch (clsErr) {
+          setScamVerdict({ error: clsErr.message || 'Classify request failed' });
+        }
+      }
     } catch (e) {
       console.error(e);
       Alert.alert(
@@ -183,6 +213,27 @@ export default function App() {
       ) : (
         <Text style={styles.placeholder}>No image selected</Text>
       )}
+
+      {scamVerdict?.label ? (
+        <View style={styles.verdictBox}>
+          <Text style={styles.verdictTitle}>ML verdict (logistic regression)</Text>
+          <Text
+            style={[
+              styles.verdictLabel,
+              scamVerdict.label === 'scam' ? styles.verdictScam : styles.verdictOk,
+            ]}
+          >
+            {scamVerdict.label === 'scam' ? 'Likely scam / spam' : 'Likely legitimate'}
+          </Text>
+          <Text style={styles.verdictMeta}>
+            score {typeof scamVerdict.score === 'number' ? scamVerdict.score.toFixed(3) : '—'} (threshold{' '}
+            {scamVerdict.threshold ?? '—'})
+          </Text>
+          <Text style={styles.verdictDisclaimer}>Educational model only — not professional advice.</Text>
+        </View>
+      ) : scamVerdict?.error ? (
+        <Text style={styles.verdictError}>Classifier: {scamVerdict.error}</Text>
+      ) : null}
 
       <TouchableOpacity
         style={[styles.btnPrimary, loading && styles.btnDisabled]}
@@ -271,6 +322,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 72,
     marginBottom: 16,
+  },
+  verdictBox: {
+    backgroundColor: '#1a1228',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#3d2f55',
+  },
+  verdictTitle: {
+    color: '#a898c4',
+    fontSize: 12,
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  verdictLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  verdictScam: {
+    color: '#ff6b6b',
+  },
+  verdictOk: {
+    color: '#69db7c',
+  },
+  verdictMeta: {
+    color: '#c4b8d4',
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  verdictDisclaimer: {
+    color: '#6b5b7d',
+    fontSize: 11,
+  },
+  verdictError: {
+    color: '#ffb020',
+    fontSize: 12,
+    marginBottom: 12,
   },
   sectionLabel: {
     color: '#c4b8d4',
