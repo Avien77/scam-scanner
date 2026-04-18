@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { extractTextFromImageBuffer } = require('../services/textractService');
 const { validateImageFile } = require('../utils/uploadValidation');
+const { requireAuth } = require('../middleware/requireAuth');
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const upload = multer({
     },
 });
 
-router.post('/extract-text', upload.single('image'), async (req, res) => {
+router.post('/extract-text', requireAuth, upload.single('image'), async (req, res) => {
     try {
         const validation = validateImageFile(req.file);
         if (!validation.ok) {
@@ -30,6 +31,7 @@ router.post('/extract-text', upload.single('image'), async (req, res) => {
                 fileName: req.file.originalname,
                 mimeType: req.file.mimetype,
                 sizeBytes: req.file.size,
+                mockOcr: Boolean(result.mocked),
             },
         });
     } catch (error) {

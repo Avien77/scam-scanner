@@ -17,7 +17,30 @@ function getTextractClient() {
     return textractClient;
 }
 
+function mockExtractResult() {
+    const lines = [
+        '[Mock OCR — set MOCK_TEXTRACT=true in backend/.env to bypass AWS]',
+        'URGENT: Verify your account at http://example.test/verify within 24 hours.',
+        'Your security team will never ask for your password by email.',
+    ];
+    return {
+        lines,
+        text: lines.join('\n'),
+        blockCount: 0,
+        mocked: true,
+    };
+}
+
+function isMockTextract() {
+    const v = process.env.MOCK_TEXTRACT;
+    return String(v).toLowerCase() === 'true' || v === '1';
+}
+
 async function extractTextFromImageBuffer(imageBuffer) {
+    if (isMockTextract()) {
+        return mockExtractResult();
+    }
+
     const command = new DetectDocumentTextCommand({
         Document: {
             Bytes: imageBuffer,
@@ -47,6 +70,7 @@ async function extractTextFromImageBuffer(imageBuffer) {
         lines,
         text: lines.join('\n'),
         blockCount: (response.Blocks || []).length,
+        mocked: false,
     };
 }
 
